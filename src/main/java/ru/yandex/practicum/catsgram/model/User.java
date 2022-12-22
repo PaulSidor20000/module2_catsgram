@@ -1,3 +1,8 @@
+package ru.yandex.practicum.catsgram.model;
+
+import java.time.LocalDate;
+import java.util.Objects;
+
 public class User {
     private String email;
     private String nickname;
