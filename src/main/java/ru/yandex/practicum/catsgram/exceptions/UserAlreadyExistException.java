@@ -1,5 +1,13 @@
 package ru.yandex.practicum.catsgram.exceptions;
 
-public class UserAlreadyExistException extends RuntimeException{
+public class UserAlreadyExistException extends RuntimeException {
+
+    public UserAlreadyExistException() {
+        super();
+    }
+
+    public UserAlreadyExistException(String message) {
+        super(message);
+    }
 
 }
