@@ -1,11 +1,9 @@
 package ru.yandex.practicum.catsgram.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.catsgram.exceptions.InvalidEmailException;
-import ru.yandex.practicum.catsgram.exceptions.UserAlreadyExistException;
 import ru.yandex.practicum.catsgram.model.User;
+import ru.yandex.practicum.catsgram.service.UserService;
 
 import java.util.*;
 
@@ -13,45 +11,26 @@ import java.util.*;
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<String, User> users = new HashMap<>();
+    private final UserService userService;
 
-    private static final Logger log = LoggerFactory.getLogger(PostController.class);
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> findAll() {
-        log.trace("Quantity of users {}", users.size());
-        return new ArrayList<>(users.values());
+        return userService.findAll();
     }
 
     @PostMapping
     public User create(@RequestBody User user) {
-        if (isCreated(user)) {
-            throw new UserAlreadyExistException("User already exists");
-        } else if (isEmailEmpty(user)) {
-            throw new InvalidEmailException("Invalid email input");
-        } else {
-            users.put(user.getEmail(), user);
-            log.trace("The new user {}, was append to database", user.getNickname());
-            return user;
-        }
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@RequestBody User user) {
-        if (isEmailEmpty(user)) {
-            throw new InvalidEmailException("Invalid email input");
-        } else {
-            users.put(user.getEmail(), user);
-            return user;
-        }
-    }
-
-    private boolean isCreated(User user) {
-        return users.containsKey(user.getEmail());
-    }
-
-    private boolean isEmailEmpty(User user) {
-        return user.getEmail().isEmpty() || user.getEmail() == null;
+        return userService.update(user);
     }
 
 }
