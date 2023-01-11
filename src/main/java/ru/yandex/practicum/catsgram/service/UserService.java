@@ -15,6 +15,8 @@ import java.util.Map;
 
 @Service
 public class UserService {
+
+    private int id;
     private final Map<String, User> users = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
@@ -27,11 +29,11 @@ public class UserService {
             throw new UserAlreadyExistException("User already exists");
         } else if (isEmailEmpty(user)) {
             throw new InvalidEmailException("Invalid email input");
-        } else {
+        }
             users.put(user.getEmail(), user);
             log.trace("The new user {}, was append to database", user.getNickname());
             return user;
-        }
+
     }
 
     public User update(User user) {
@@ -41,6 +43,10 @@ public class UserService {
             users.put(user.getEmail(), user);
             return user;
         }
+    }
+
+    public int genId() {
+        return ++id;
     }
 
     private boolean isUserExist(User user) {

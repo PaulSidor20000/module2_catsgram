@@ -5,18 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.controller.PostController;
+import ru.yandex.practicum.catsgram.exceptions.PostNotFoundException;
 import ru.yandex.practicum.catsgram.exceptions.UserNotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
-import ru.yandex.practicum.catsgram.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class PostService {
 
+    private int id;
     private final UserService userService;
-    private final List<Post> posts = new ArrayList<>();
+    private final Map<Integer, Post> posts = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
     @Autowired
@@ -24,20 +24,32 @@ public class PostService {
         this.userService = userService;
     }
 
+    public int genId() {
+        return ++id;
+    }
 
     public List<Post> findAll() {
-        log.debug("Текущее количество постов: {}", posts.size());
+        log.debug("Actual quantity of posts: {}", posts.size());
 
-        return posts;
+        return new ArrayList<>(posts.values());
     }
 
     public Post create(Post post) {
         if (isEmailExist(post.getAuthor())) {
+            post.setId(genId());
             log.trace("The new post of {}, was append to database", post.getAuthor());
-            posts.add(post);
+            posts.put(post.getId(), post);
+
             return post;
         }
-        throw new UserNotFoundException(String.format("Пользователь %s не найден", post.getAuthor()));
+        throw new UserNotFoundException(String.format("User %s not found", post.getAuthor()));
+    }
+
+    public Post findPostById(int urlId) {
+        if (posts.containsKey(urlId)) {
+            return posts.get(urlId);
+        }
+        throw new PostNotFoundException(String.format("Post with id - %d not found", urlId));
     }
 
     private boolean isEmailExist(String email) {
