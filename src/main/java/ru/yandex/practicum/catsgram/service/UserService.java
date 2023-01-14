@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Service
 public class UserService {
-
     private int id;
     private final Map<String, User> users = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
