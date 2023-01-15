@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.controller.PostController;
 import ru.yandex.practicum.catsgram.exceptions.PostNotFoundException;
@@ -23,7 +22,6 @@ public class PostService {
     private final List<Post> posts = new ArrayList<>();
     private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
-    @Autowired
     public PostService(UserService userService) {
         this.userService = userService;
     }
@@ -71,25 +69,27 @@ public class PostService {
     // {"sort":"desc","size":3,"friends":["puss@boots.com","cat@dogs.net","purrr@luv.me"]}
     public List<Post> feedCreator(String feed) throws JsonProcessingException {
         Feed clientFeed = new ObjectMapper().readValue(feed.replaceAll("(^\"|\"$|\\\\)", ""), Feed.class);
-        List<Post> userFeedPosts = new ArrayList<>();
+        List<Post> userFeedPosts;
         List<Post> allFeedPosts = new ArrayList<>();
         for (String email : clientFeed.getFriends()) {
             if (userService.findUserByEmail(email) != null) {
                 userFeedPosts = posts.stream().filter(post -> post.getAuthor().equals(email)).collect(Collectors.toList());
+            } else {
+                throw new UserNotFoundException(String.format("User: %s in feed not found", email));
+            }
+            if (clientFeed.getSort().equals("asc")) {
+                userFeedPosts.sort(Comparator.comparing(Post::getCreationDate));
+            } else if (clientFeed.getSort().equals("desc")) {
+                userFeedPosts.sort(Comparator.comparing(Post::getCreationDate).reversed());
+            } else {
+                throw new IllegalArgumentException(String.format("Illegal sort argument: %s", clientFeed.getSort()));
             }
             allFeedPosts.addAll(userFeedPosts.stream().limit(clientFeed.getSize()).collect(Collectors.toList()));
         }
-        if (clientFeed.getSort().equals("asc")) {
-            allFeedPosts.sort(Comparator.comparing(Post::getCreationDate));
-        } else if (clientFeed.getSort().equals("desc")) {
-            allFeedPosts.sort(Comparator.comparing(Post::getCreationDate).reversed());
-        } else {
-            throw new IllegalArgumentException(String.format("Illegal sort argument: %s", clientFeed.getSort()));
+        if (clientFeed.getSort().equals("desc")) {
+            return allFeedPosts.stream().sorted(Comparator.comparing(Post::getCreationDate).reversed()).collect(Collectors.toList());
         }
-
-        return allFeedPosts;
+        return allFeedPosts.stream().sorted(Comparator.comparing(Post::getCreationDate)).collect(Collectors.toList());
     }
-
-    
 
 }
