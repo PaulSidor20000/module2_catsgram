@@ -25,7 +25,7 @@ public class UserService {
 
     public User create(User user) {
         if (isUserExist(user)) {
-            throw new UserAlreadyExistException("User already exists");
+            throw new UserAlreadyExistException(String.format("User %s already exists", user.getEmail()));
         } else if (isEmailEmpty(user)) {
             throw new InvalidEmailException("Invalid email input");
         }
